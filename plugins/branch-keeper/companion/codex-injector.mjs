@@ -10,6 +10,8 @@ import { basename, join } from "node:path";
 const COMPANION_DIR = new URL(".", import.meta.url).pathname;
 const INJECTION_FILE = join(COMPANION_DIR, "codex-inject.user.js");
 const SERVER_FILE = join(COMPANION_DIR, "branch_keeper_server.py");
+const PYTHON_LAUNCHER = join(COMPANION_DIR, "..", "scripts", "branch_keeper_launcher.mjs");
+const PLUGIN_ROOT = join(COMPANION_DIR, "..");
 const DEFAULT_PORT = 9232;
 const INJECTOR_VERSION = "0.2.0";
 
@@ -214,10 +216,15 @@ async function launchCodex(options) {
 }
 
 async function startBoardServer(serverPort) {
-  const child = spawn("python3", [SERVER_FILE, "--host", "127.0.0.1", "--port", String(serverPort)], {
-    stdio: ["ignore", "pipe", "inherit"],
-    env: process.env,
-  });
+  const child = spawn(
+    process.execPath,
+    [PYTHON_LAUNCHER, SERVER_FILE, "--host", "127.0.0.1", "--port", String(serverPort)],
+    {
+      cwd: PLUGIN_ROOT,
+      stdio: ["ignore", "pipe", "inherit"],
+      env: process.env,
+    },
+  );
   const reader = createInterface({ input: child.stdout });
   const ready = new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error("本地 Branch Keeper 看板服务启动超时")), 10000);

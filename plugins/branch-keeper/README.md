@@ -33,7 +33,12 @@ By default, data is stored at `~/.branch-keeper/branches.sqlite3`. Set `BRANCH_K
 - Codex uses `.codex-plugin/plugin.json` and `.mcp.json`.
 - Antigravity uses the root `plugin.json`, `mcp_config.json`, and `skills/`.
 
-For a portable release, the host configuration should resolve the script path relative to the installed plugin directory. The current local configuration uses `cwd: "."` and `./scripts/branch_keeper_mcp.py`.
+Both host configurations invoke the Node launcher at
+`./scripts/branch_keeper_launcher.mjs`, which resolves the MCP server path and
+automatically finds Python 3.10+ as `python3`, `python`, or `py -3` on Windows.
+Set `BRANCH_KEEPER_PYTHON` when Python is installed under a non-standard path.
+The launcher keeps `cwd: "."` so the same configuration works from an
+installed plugin cache or a local checkout.
 
 ## Codex Companion
 

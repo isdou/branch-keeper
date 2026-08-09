@@ -24,6 +24,10 @@ codex plugin add branch-keeper@branch-keeper
 Restart Codex and open the Plugins directory to enable Branch Keeper. Start a
 new task after installation so the Skill and MCP tools are loaded.
 
+The plugin uses a Node.js launcher to locate Python automatically. Node.js and
+Python 3.10+ are required; set `BRANCH_KEEPER_PYTHON` if Python is installed
+under a non-standard path.
+
 ## Try it
 
 Use a real product discussion, then ask Codex:

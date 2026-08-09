@@ -2,8 +2,9 @@
   "mcpServers": {
     "branch-keeper": {
       "cwd": ".",
-      "command": "python3",
+      "command": "node",
       "args": [
+        "./scripts/branch_keeper_launcher.mjs",
         "./scripts/branch_keeper_mcp.py"
       ]
     }
