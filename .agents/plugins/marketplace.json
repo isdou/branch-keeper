@@ -10,7 +10,7 @@
         "source": "git-subdir",
         "url": "https://github.com/isdou/branch-keeper.git",
         "path": "./plugins/branch-keeper",
-        "ref": "main"
+        "ref": "v0.1.0"
       },
       "policy": {
         "installation": "AVAILABLE",
