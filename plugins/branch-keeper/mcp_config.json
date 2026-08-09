@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "branch-keeper": {
+      "cwd": ".",
+      "command": "python3",
+      "args": [
+        "./scripts/branch_keeper_mcp.py"
+      ]
+    }
+  }
+}

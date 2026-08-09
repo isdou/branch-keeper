@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Branch Keeper</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f7f7f8;
+      --surface: rgba(255, 255, 255, .88);
+      --surface-hover: #f1f1f3;
+      --line: #e5e6ea;
+      --line-strong: #d9dbe1;
+      --text: #535867;
+      --text-strong: #464b59;
+      --muted: #8d92a0;
+      --accent: #d58b42;
+      --accent-soft: #f3e4d4;
+      --accent-hover: #eedac4;
+      --green: #398760;
+      --red: #c96868;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--canvas); color: var(--text); font: 13px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+    body { padding: 0 0 44px; }
+    button, select, input { font: inherit; }
+    button, select { color: var(--text); border: 1px solid var(--line); border-radius: 7px; background: var(--surface); cursor: pointer; outline: none; }
+    button:hover, select:hover { background: var(--surface-hover); border-color: var(--line-strong); }
+    button:focus-visible, select:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(213, 139, 66, .16); }
+    button { padding: 6px 10px; }
+    .shell { width: 100%; max-width: 1240px; margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 26px 44px 19px; border-bottom: 1px solid var(--line); }
+    .heading { min-width: 0; }
+    .title-line { display: flex; align-items: center; }
+    h1 { margin: 0; color: var(--text-strong); font-size: 18px; font-weight: 600; letter-spacing: -.02em; }
+    .subtitle { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+    .toolbar .count { color: var(--muted); min-width: 64px; text-align: right; font-size: 12px; }
+    .menu-control { position: relative; display: inline-flex; }
+    .menu-trigger { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 5px 8px; border: 0; border-radius: 12.5px; background: transparent; color: var(--text); }
+    .menu-trigger:hover, .menu-trigger[aria-expanded="true"] { border-color: transparent; background: var(--surface-hover); }
+    .chevron { width: 12px; height: 12px; color: var(--muted); }
+    .menu { position: absolute; top: calc(100% + 5px); right: 0; z-index: 20; min-width: 142px; padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .96); box-shadow: 0 10px 28px rgba(38, 42, 53, .14), 0 2px 5px rgba(38, 42, 53, .06); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+    .menu[hidden] { display: none; }
+    .menu-option { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 28px; padding: 5px 8px; border: 0; border-radius: 7px; background: transparent; color: var(--text); text-align: left; }
+    .menu-option:hover, .menu-option:focus-visible { border-color: transparent; background: var(--surface-hover); box-shadow: none; }
+    .menu-check { width: 14px; color: var(--accent); font-size: 12px; text-align: center; }
+    .notice { display: none; margin: 20px 44px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--surface); }
+    .notice.visible { display: block; }
+    #board { padding: 26px 44px 0; }
+    .group { margin: 0 0 25px; }
+    .group-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .group-title span { color: var(--muted); font-size: 11px; font-weight: 500; }
+    .grid { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); }
+    .card { display: block; min-height: 0; padding: 13px 10px 12px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; }
+    .card:hover { background: var(--surface-hover); border-radius: 8px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card h2 { margin: 0; color: var(--text-strong); font-size: 14px; font-weight: 600; line-height: 1.35; }
+    .status-control { position: relative; flex: none; }
+    .status { max-width: 92px; padding: 5px 8px; border: 0; border-radius: 12.5px; background: transparent; color: var(--muted); font-size: 11px; }
+    .status:hover, .status[aria-expanded="true"] { background: var(--surface-hover); }
+    .status-control .menu { min-width: 122px; }
+    .attention-badge, .review-badge { display: inline-flex; align-items: center; min-height: 20px; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+    .attention-badge { color: #ae6a2a; background: var(--accent-soft); }
+    .attention-badge.blocked { color: var(--red); background: rgba(201, 104, 104, .12); }
+    .attention-badge.stale { color: var(--muted); background: var(--surface-hover); }
+    .review-badge { color: #6e6f9f; background: rgba(110, 111, 159, .12); }
+    .badges { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; vertical-align: middle; }
+    .meta { margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .field { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; margin-top: 8px; }
+    .label { margin: 0; padding-top: 1px; color: var(--muted); font-size: 11px; }
+    .value { color: #686d7a; }
+    .value.muted { color: var(--muted); }
+    .card-actions { display: flex; align-items: center; gap: 7px; margin-top: 12px; padding-top: 0; }
+    .primary { border-color: transparent; border-radius: 12.5px; background: var(--accent-soft); color: #b46d2d; font-weight: 600; }
+    .primary:hover { border-color: transparent; background: var(--accent-hover); color: #a55f25; }
+    .link-button { border-color: transparent; background: transparent; color: var(--muted); }
+    .link-button:hover { border-color: transparent; background: var(--surface-hover); color: var(--text); }
+    .detail-panel { margin-top: 12px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+    .detail-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-strong); font-size: 12px; font-weight: 600; }
+    .detail-meta { margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .timeline { display: grid; gap: 8px; margin-top: 10px; }
+    .timeline-item { position: relative; display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: 8px; }
+    .timeline-dot { width: 6px; height: 6px; margin-top: 5px; border-radius: 50%; background: var(--accent); }
+    .timeline-copy { min-width: 0; color: var(--text); font-size: 11px; line-height: 1.45; }
+    .timeline-copy .time { margin-left: 5px; color: var(--muted); }
+    .timeline-copy .payload { margin-top: 2px; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+    .detail-empty { margin-top: 9px; color: var(--muted); font-size: 11px; }
+    .empty { padding: 54px 20px; border: 1px dashed var(--line-strong); border-radius: 9px; color: var(--muted); background: rgba(255,255,255,.35); text-align: center; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 10; max-width: 420px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--text); box-shadow: 0 8px 24px rgba(49, 53, 65, .12); opacity: 0; transform: translateY(8px); transition: .18s ease; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .error { color: var(--red); }
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme: dark; --canvas: #25262b; --surface: #2c2d33; --surface-hover: #35363d; --line: #3d3f47; --line-strong: #4a4c55; --text: #d8d9df; --text-strong: #f0f0f2; --muted: #a3a5ae; --accent-soft: #4b392b; --accent-hover: #60462e; --accent: #e0a25e; --green: #78c89c; --red: #e28f8f; }
+      .menu { background: rgba(49, 50, 57, .97); box-shadow: 0 10px 28px rgba(0,0,0,.25); }
+      .status { background: transparent; color: var(--muted); }
+      .status:hover, .status[aria-expanded="true"] { background: #41424a; }
+      .value { color: #c3c5cc; }
+      .toast { background: #34353c; color: var(--text); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    }
+    @media (max-width: 760px) { .topbar { display: block; padding: 22px 22px 16px; } .toolbar { justify-content: flex-start; margin-top: 14px; } .toolbar .count { text-align: left; } #board { padding: 22px 22px 0; } .notice { margin-left: 22px; margin-right: 22px; } .field { grid-template-columns: 78px minmax(0, 1fr); } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="title-line"><h1>Branch Keeper</h1></div>
+        <p class="subtitle">保存暂时不走的产品方向，带着理由和下一步继续推进。</p>
+      </div>
+      <div class="toolbar">
+        <div class="menu-control">
+          <button id="statusFilterButton" class="menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false">
+            <span id="statusFilterLabel">未完成</span>
+            <svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div id="statusFilterMenu" class="menu" role="menu" hidden></div>
+        </div>
+        <button id="refreshButton" type="button">刷新</button>
+        <span id="count" class="count">加载中…</span>
+      </div>
+    </header>
+    <div id="notice" class="notice"></div>
+    <section id="board" aria-live="polite"></section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      const capability = params.get("capability") || window.__BRANCH_KEEPER_CAPABILITY__ || "";
+      const apiBase = window.__BRANCH_KEEPER_API_BASE__ || location.origin;
+      const stateLabels = {
+        parked: "已保留", exploring: "探索中", adopted: "已采纳",
+        merged: "已合并", abandoned: "已放弃"
+      };
+      const attentionLabels = { due: "待复核", stale: "久未更新", blocked: "受阻" };
+      const reviewLabels = { needs_review: "需要确认" };
+      const filterOptions = [
+        ["", "未完成"], ["parked", "已保留"], ["exploring", "探索中"],
+        ["adopted", "已采纳"], ["merged", "已合并"], ["abandoned", "已放弃"],
+        ["attention:due", "待复核"], ["attention:stale", "久未更新"],
+        ["attention:blocked", "受阻"], ["review:needs_review", "需要确认"], ["all", "全部"]
+      ];
+      const filterButton = document.getElementById("statusFilterButton");
+      const filterLabel = document.getElementById("statusFilterLabel");
+      const filterMenu = document.getElementById("statusFilterMenu");
+      const board = document.getElementById("board");
+      const count = document.getElementById("count");
+      const notice = document.getElementById("notice");
+      const toast = document.getElementById("toast");
+      let selectedFilter = "";
+      let toastTimer;
+
+      const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+      const text = (value, fallback = "未记录") => value ? escapeHTML(value) : `<span class="value muted">${fallback}</span>`;
+      const postToHost = (type, payload = {}) => window.parent.postMessage({ type, capability, ...payload }, "*");
+      const showToast = (message, isError = false) => {
+        toast.textContent = message;
+        toast.classList.toggle("error", isError);
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+      };
+      const showNotice = (message) => {
+        notice.textContent = message || "";
+        notice.classList.toggle("visible", Boolean(message));
+      };
+      const closeMenus = (except = null) => {
+        document.querySelectorAll(".menu-control .menu").forEach((menu) => {
+          if (menu === except) return;
+          menu.hidden = true;
+          menu.previousElementSibling?.setAttribute("aria-expanded", "false");
+        });
+      };
+      const toggleMenu = (control) => {
+        const menu = control.querySelector(".menu");
+        const trigger = control.querySelector("[aria-expanded]");
+        if (!menu || !trigger) return;
+        const opening = menu.hidden;
+        closeMenus(menu);
+        menu.hidden = !opening;
+        trigger.setAttribute("aria-expanded", String(opening));
+      };
+
+      filterMenu.innerHTML = filterOptions.map(([value, label]) => `<button class="menu-option" data-filter-option="${value}" type="button" role="menuitem"><span>${label}</span><span class="menu-check">${value === selectedFilter ? "✓" : ""}</span></button>`).join("");
+      filterButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleMenu(filterButton.closest(".menu-control"));
+      });
+      filterMenu.addEventListener("click", (event) => {
+        const option = event.target.closest("[data-filter-option]");
+        if (!option) return;
+        selectedFilter = option.dataset.filterOption;
+        filterLabel.textContent = filterOptions.find(([value]) => value === selectedFilter)?.[1] || "未完成";
+        filterMenu.querySelectorAll("[data-filter-option]").forEach((item) => {
+          item.querySelector(".menu-check").textContent = item === option ? "✓" : "";
+        });
+        closeMenus();
+        load();
+      });
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".menu-control")) closeMenus();
+      });
+
+      async function request(path, options = {}) {
+        const response = await fetch(`${apiBase}${path}`, { ...options, headers: { "Content-Type": "application/json", ...(options.headers || {}) } });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || `请求失败（${response.status}）`);
+        return payload;
+      }
+
+      function sourceButton(branch) {
+        if (!branch.source_url && !branch.source_conversation_id) return "";
+        return `<button class="link-button source-button" data-source-url="${escapeHTML(branch.source_url || "")}" data-thread-id="${escapeHTML(branch.source_conversation_id || "")}" type="button">打开来源</button>`;
+      }
+
+      function dateLabel(value) {
+        if (!value) return "时间未记录";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return escapeHTML(value);
+        return escapeHTML(new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(date));
+      }
+
+      function card(branch) {
+        const status = branch.lifecycle_status || branch.status || "parked";
+        const attention = branch.attention_state && branch.attention_state !== "normal"
+          ? `<span class="attention-badge ${escapeHTML(branch.attention_state)}">${escapeHTML(attentionLabels[branch.attention_state] || branch.attention_state)}</span>`
+          : "";
+        const review = branch.review_state === "needs_review"
+          ? `<span class="review-badge">${reviewLabels.needs_review}</span>`
+          : "";
+        return `<article class="card" data-id="${escapeHTML(branch.id)}">
+          <div class="card-head">
+            <h2>${text(branch.title, "未命名方向")}<span class="badges">${attention}${review}</span></h2>
+            <div class="status-control menu-control">
+              <button class="status" data-status-trigger="${escapeHTML(branch.id)}" type="button" aria-haspopup="menu" aria-expanded="false">
+                <span>${escapeHTML(stateLabels[status] || status)}</span>
+                <svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="menu" role="menu" hidden>
+                ${Object.entries(stateLabels).map(([value, label]) => `<button class="menu-option" data-status-option="${value}" type="button" role="menuitem"><span>${label}</span><span class="menu-check">${value === status ? "✓" : ""}</span></button>`).join("")}
+              </div>
+            </div>
+          </div>
+          <div class="meta">${text(branch.source_host, "来源未记录")} · ${text(branch.project_name, "未归类")}</div>
+          <div class="field"><div class="label">为什么保留</div><div class="value">${text(branch.why_saved)}</div></div>
+          <div class="field"><div class="label">下一步问什么</div><div class="value">${text(branch.next_question)}</div></div>
+          <div class="field"><div class="label">下一步行动</div><div class="value">${text(branch.next_action)}</div></div>
+          <div class="field"><div class="label">为什么现在不走</div><div class="value">${text(branch.why_not_now)}</div></div>
+          <div class="field"><div class="label">重新评估</div><div class="value">${text(branch.revisit_trigger)}</div></div>
+          ${branch.blocked_reason ? `<div class="field"><div class="label">受阻原因</div><div class="value">${text(branch.blocked_reason)}</div></div>` : ""}
+          <div class="meta">最近活动 ${dateLabel(branch.last_activity_at || branch.updated_at)}${branch.review_at ? ` · 复查 ${dateLabel(branch.review_at)}` : ""}</div>
+          <div class="card-actions">
+            <button class="primary resume-button" data-resume-id="${escapeHTML(branch.id)}" type="button">继续这个方向</button>
+            <button class="link-button detail-button" data-detail-id="${escapeHTML(branch.id)}" type="button">查看详情</button>
+            ${sourceButton(branch)}
+          </div>
+        </article>`;
+      }
+
+      function render(branches) {
+        count.textContent = `${branches.length} 个分支`;
+        if (!branches.length) {
+          board.innerHTML = `<div class="empty">当前没有符合条件的产品分支。<br>在 Codex 对话中确认保存后，它们会出现在这里。</div>`;
+          return;
+        }
+        const groups = new Map();
+        branches.forEach((branch) => {
+          const key = branch.project_name || "未归类";
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(branch);
+        });
+        board.innerHTML = [...groups.entries()].map(([name, items]) => `<section class="group">
+          <h2 class="group-title">${escapeHTML(name)} <span>${items.length}</span></h2>
+          <div class="grid">${items.map(card).join("")}</div>
+        </section>`).join("");
+      }
+
+      async function load() {
+        showNotice("");
+        const selected = selectedFilter;
+        let query = "";
+        if (selected === "all") query = "include_resolved=true";
+        else if (selected.startsWith("attention:")) query = `attention_state=${encodeURIComponent(selected.slice(10))}`;
+        else if (selected.startsWith("review:")) query = `review_state=${encodeURIComponent(selected.slice(7))}`;
+        else if (selected) query = `status=${encodeURIComponent(selected)}`;
+        try {
+          const payload = await request(`/api/branches${query ? `?${query}` : ""}`);
+          render(payload.branches || []);
+        } catch (error) {
+          count.textContent = "加载失败";
+          showNotice(error.message || "无法读取本地分支库");
+        }
+      }
+
+      async function resume(id, button) {
+        button.disabled = true;
+        try {
+          const payload = await request(`/api/branches/${encodeURIComponent(id)}/resume`, { method: "POST", body: "{}" });
+          showToast("已生成继续提示，正在准备 Codex 新对话…");
+          postToHost("branch-keeper:resume", {
+            branch: payload.branch,
+            resume_id: payload.resume_id,
+            continuation_prompt: payload.continuation_prompt
+          });
+        } catch (error) {
+          showToast(error.message || "恢复失败", true);
+          button.disabled = false;
+        }
+      }
+
+      async function updateStatus(id, status, trigger) {
+        trigger.disabled = true;
+        try {
+          const body = { status };
+          if (["adopted", "abandoned"].includes(status)) {
+            const reason = window.prompt("请记录这次决定的原因：");
+            if (!reason?.trim()) {
+              trigger.disabled = false;
+              return;
+            }
+            body.reason = reason.trim();
+            body.outcome_rationale = reason.trim();
+          }
+          if (status === "merged") {
+            const target = window.prompt("请输入要合并到的分支 ID：");
+            if (!target?.trim()) {
+              trigger.disabled = false;
+              return;
+            }
+            const reason = window.prompt("请记录合并原因：");
+            if (!reason?.trim()) {
+              trigger.disabled = false;
+              return;
+            }
+            body.merged_into = target.trim();
+            body.reason = reason.trim();
+            body.outcome_rationale = reason.trim();
+          }
+          await request(`/api/branches/${encodeURIComponent(id)}/status`, { method: "POST", body: JSON.stringify(body) });
+          showToast("状态已更新");
+          await load();
+        } catch (error) {
+          showToast(error.message || "状态更新失败", true);
+        } finally {
+          trigger.disabled = false;
+        }
+      }
+
+      const eventLabels = {
+        branch_created: "创建分支",
+        edited: "编辑记录",
+        resume_requested: "请求继续",
+        resume_handoff_succeeded: "继续交接成功",
+        resume_handoff_failed: "继续交接失败",
+        lifecycle_transitioned: "生命周期变更",
+        reopened: "重新打开",
+        review_state_changed: "复核状态变更",
+        blocked: "标记受阻",
+        unblocked: "解除阻塞",
+        snoozed: "暂时静默"
+      };
+
+      function eventLine(event) {
+        const label = eventLabels[event.event_type] || event.event_type || "记录事件";
+        const transition = event.from_status || event.to_status
+          ? ` · ${escapeHTML(event.from_status || "—")} → ${escapeHTML(event.to_status || "—")}`
+          : "";
+        const payload = event.payload && Object.keys(event.payload).length
+          ? `<div class="payload">${escapeHTML(JSON.stringify(event.payload))}</div>`
+          : "";
+        return `<div class="timeline-item"><span class="timeline-dot"></span><div class="timeline-copy"><span>${escapeHTML(label)}${transition}</span><span class="time">${dateLabel(event.created_at)}</span>${payload}</div></div>`;
+      }
+
+      async function toggleDetails(button) {
+        const cardElement = button.closest(".card");
+        if (!cardElement) return;
+        const existing = cardElement.querySelector(".detail-panel");
+        if (existing) {
+          existing.remove();
+          button.textContent = "查看详情";
+          return;
+        }
+        button.disabled = true;
+        try {
+          const payload = await request(`/api/branches/${encodeURIComponent(button.dataset.detailId)}`);
+          const branch = payload.branch || {};
+          const events = branch.events || [];
+          const sessions = branch.resume_sessions || [];
+          const panel = document.createElement("div");
+          panel.className = "detail-panel";
+          panel.innerHTML = `<div class="detail-heading"><span>状态与时间线</span><span>${escapeHTML(branch.operation_status || "idle")}</span></div>
+            <div class="detail-meta">复核：${escapeHTML(branch.review_state || "confirmed")} · 最近继续：${dateLabel(branch.last_resumed_at)}</div>
+            ${branch.outcome ? `<div class="detail-meta">结果：${text(branch.outcome)}</div>` : ""}
+            ${sessions.length ? `<div class="detail-meta">最近交接：${escapeHTML(sessions[0].operation_status || "未完成")}</div>` : ""}
+            <div class="timeline">${events.length ? events.slice(0, 12).map(eventLine).join("") : `<div class="detail-empty">还没有事件记录。</div>`}</div>`;
+          cardElement.appendChild(panel);
+          button.textContent = "收起详情";
+        } catch (error) {
+          showToast(error.message || "详情加载失败", true);
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      board.addEventListener("click", (event) => {
+        const detailButton = event.target.closest("[data-detail-id]");
+        if (detailButton) {
+          toggleDetails(detailButton);
+          return;
+        }
+        const statusTrigger = event.target.closest("[data-status-trigger]");
+        if (statusTrigger) {
+          event.stopPropagation();
+          toggleMenu(statusTrigger.closest(".menu-control"));
+          return;
+        }
+        const statusOption = event.target.closest("[data-status-option]");
+        if (statusOption) {
+          const control = statusOption.closest(".status-control");
+          const trigger = control?.querySelector("[data-status-trigger]");
+          const branchId = control?.closest("[data-id]")?.dataset.id;
+          closeMenus();
+          if (branchId && trigger) updateStatus(branchId, statusOption.dataset.statusOption, trigger);
+          return;
+        }
+        const resumeButton = event.target.closest("[data-resume-id]");
+        if (resumeButton) resume(resumeButton.dataset.resumeId, resumeButton);
+        const sourceButtonElement = event.target.closest(".source-button");
+        if (sourceButtonElement) postToHost("branch-keeper:open-source", {
+          source_url: sourceButtonElement.dataset.sourceUrl || "",
+          thread_id: sourceButtonElement.dataset.threadId || ""
+        });
+      });
+      document.getElementById("refreshButton").addEventListener("click", load);
+      postToHost("branch-keeper:ready");
+      load();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "branch-keeper",
+  "interface": {
+    "displayName": "Branch Keeper"
+  },
+  "plugins": [
+    {
+      "name": "branch-keeper",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/isdou/branch-keeper.git",
+        "path": "./plugins/branch-keeper",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
