@@ -1,0 +1,38 @@
+{
+  "name": "branch-keeper",
+  "version": "0.1.0",
+  "description": "Proactively preserve valuable product directions and continue them later from Codex or Antigravity.",
+  "homepage": "https://github.com/isdou/branch-keeper",
+  "repository": "https://github.com/isdou/branch-keeper",
+  "author": {
+    "name": "GitKeep"
+  },
+  "license": "MIT",
+  "keywords": [
+    "product-direction",
+    "decision-branches",
+    "codex",
+    "antigravity",
+    "local-first"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Branch Keeper",
+    "shortDescription": "Keep valuable product directions and resume them later.",
+    "longDescription": "Branch Keeper proactively spots distinct product directions in Codex and Antigravity conversations, asks for confirmation, stores structured decision branches locally, and generates clean continuation prompts.",
+    "developerName": "GitKeep",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Find valuable product directions I may be overlooking.",
+      "Park these directions and record why we are not pursuing them now.",
+      "Resume this product branch with a clean continuation prompt."
+    ],
+    "brandColor": "#D97706"
+  }
+}
