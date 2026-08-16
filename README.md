@@ -1,24 +1,16 @@
 # Branch Keeper
 
-> Keep the product paths you did not take.
+> Save the product directions you are not taking — with the reason, the next question, and a path back.
 
 [![Latest release](https://img.shields.io/github/v/release/isdou/branch-keeper?display_name=tag&sort=semver)](https://github.com/isdou/branch-keeper/releases)
 [![License](https://img.shields.io/github/license/isdou/branch-keeper)](LICENSE)
 
-Branch Keeper is a local-first plugin for Codex and Antigravity. It helps you
-save a promising product direction when an AI conversation gives you several
-paths, but you decide to explore only one for now.
+When an AI conversation gives you several promising product directions, you
+usually explore one and lose the others in the chat history. Branch Keeper
+keeps those deferred directions structured and ready to resume.
 
-It records:
-
-- what the direction is;
-- why it is worth keeping;
-- why it is not being pursued now;
-- what to ask or do next;
-- when it should be revisited.
-
-This is not a general AI memory app, clipping inbox, or task manager. It is a
-small decision-branch system for product work.
+It is not a general AI memory app, clipping inbox, or task manager. It is a
+small decision-branch tool for product work.
 
 ## Install
 
@@ -33,10 +25,10 @@ codex plugin marketplace add isdou/branch-keeper@v0.2.0
 codex plugin add branch-keeper@branch-keeper
 ```
 
-Restart Codex, enable **Branch Keeper** from the Plugins directory, and start a
+Restart Codex, enable **Branch Keeper** in the Plugins directory, and start a
 new task.
 
-If Python is installed in a non-standard location:
+If Python is not on your `PATH`:
 
 ```bash
 export BRANCH_KEEPER_PYTHON=/absolute/path/to/python3
@@ -44,13 +36,16 @@ export BRANCH_KEEPER_PYTHON=/absolute/path/to/python3
 
 ### Antigravity
 
-Use the [`plugins/branch-keeper`](plugins/branch-keeper) directory as the
-plugin package. It contains the Antigravity manifest, MCP configuration, and
-Skill.
+Clone the repository and use the [`plugins/branch-keeper`](plugins/branch-keeper)
+directory as the plugin package:
 
-## How to use it
+```bash
+git clone https://github.com/isdou/branch-keeper.git
+```
 
-In any product conversation, ask:
+## Start using it
+
+In a product conversation, ask:
 
 ```text
 Find the valuable product directions we are not pursuing right now.
@@ -64,38 +59,44 @@ Save the confirmed directions with why we are keeping them,
 why we are parking them, the next question, and the revisit trigger.
 ```
 
-Later:
+Later, in a new task:
 
 ```text
 Show me my unfinished product branches and resume the one about [direction].
 ```
 
 The Skill is globally available because useful branches can appear in any
-conversation. It asks for confirmation before saving and is intended to stay
-selective rather than interrupt every task.
+product conversation. It suggests selectively and asks for confirmation before
+saving anything.
 
-## Privacy and storage
+## What it keeps
+
+- The product direction
+- Why it is worth keeping
+- Why it is not the current path
+- The next question or action
+- The condition for revisiting it
+- Project and conversation context
+
+## Privacy
 
 Branch Keeper runs locally. The core plugin does not upload branch content and
 does not require an account, API key, or cloud service.
 
-Data is stored in:
+Data is stored in a local SQLite database:
 
 ```text
 ~/.branch-keeper/branches.sqlite3
 ```
 
-You can change the location with `BRANCH_KEEPER_HOME` or
-`BRANCH_KEEPER_DB_PATH`.
+The optional Codex Companion adds a local board and sidebar-style entry. It is
+not required for the core workflow and is currently macOS-first.
 
-The optional Codex Companion displays a local board and is not required for the
-core workflow. It is currently macOS-first.
+## Links
 
-## Learn more
-
-- [Latest releases](https://github.com/isdou/branch-keeper/releases)
-- [Plugin package documentation](plugins/branch-keeper/README.md)
-- [Issues and discussions](https://github.com/isdou/branch-keeper/issues)
+- [Latest release](https://github.com/isdou/branch-keeper/releases)
+- [Plugin documentation](plugins/branch-keeper/README.md)
+- [Issues](https://github.com/isdou/branch-keeper/issues)
 
 ## License
 
