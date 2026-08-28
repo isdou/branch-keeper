@@ -4,6 +4,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/isdou/branch-keeper?display_name=tag&sort=semver)](https://github.com/isdou/branch-keeper/releases)
 [![License](https://img.shields.io/github/license/isdou/branch-keeper)](LICENSE)
+[![Intent-Preserving Protocol](https://img.shields.io/badge/IPP-Compliant-success.svg)](https://github.com/isdou/intent-preserving-protocol)
 
 When an AI conversation gives you several promising product directions, you
 usually explore one and lose the others in the chat history. Branch Keeper
