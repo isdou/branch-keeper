@@ -12,6 +12,20 @@ keeps those deferred directions structured and ready to resume.
 It is not a general AI memory app, clipping inbox, or task manager. It is a
 small decision-branch tool for product work.
 
+## Design Philosophy / 设计哲学
+
+> *"Why structured decision branches over transient chat history?"*
+
+Agent sessions are stateless by nature. When a generative discussion branches into multiple viable paths, exploring one almost always means discarding the rest to transcript oblivion. 
+
+As highlighted in Anthropic & Warp's engineering pattern [*How Warp builds self-improving agents on Claude*](https://claude.com/blog/how-warp-builds-self-improving-agents-on-claude), sustainable agentic workflows require durable, inspectable artifacts where human signals compound over time rather than resetting every session.
+
+Branch Keeper applies this philosophy to product decision architecture:
+
+- **Preserve Non-Chosen Branches**: Structured capture of *why it was kept*, *why not now*, and the exact *revisit trigger*.
+- **Explicit Human Confirmation**: No silent saves, no AI auto-decisions. Every parked branch is confirmed by the builder.
+- **Clean Resume Protocol**: Restores context and next actionable questions into fresh tasks without baggage or context drift.
+
 ## Install
 
 ### Codex
